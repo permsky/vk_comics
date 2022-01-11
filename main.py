@@ -50,7 +50,7 @@ def get_upload_server(url: str, params: dict) -> str:
     return response.json()
 
 
-def post_comic(url: str, directory: str, image_number: int) -> dict:
+def load_comic(url: str, directory: str, image_number: int) -> dict:
     """
     Move comic on VK-server and return photo url, server_id and
     photo_hash.
@@ -76,7 +76,7 @@ def save_image_on_server(url: str, params: dict) -> dict:
     return response.json()
 
 
-def post_image(url: str, params: dict) -> None:
+def post_comic(url: str, params: dict) -> None:
     """Post comic in VK-public."""
     response = requests.post(url, params)
     response.raise_for_status()
@@ -109,7 +109,7 @@ if __name__ == '__main__':
 
     upload_server_params = get_upload_server(vk_upload_server_url, get_params)
     upload_url = upload_server_params['response']['upload_url']
-    photo_on_server = post_comic(upload_url, images_directory, image_number)
+    photo_on_server = load_comic(upload_url, images_directory, image_number)
 
     delete_comic_image(images_directory, image_number)
 
@@ -135,4 +135,4 @@ if __name__ == '__main__':
         'access_token': token,
         'v': vk_api_version,
     }
-    post_image(post_url, post_params)
+    post_comic(post_url, post_params)
