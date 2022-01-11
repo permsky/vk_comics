@@ -37,18 +37,24 @@ def fetch_xkcd_comic(url: str, directory: str, image_number: int) -> None:
 
 
 def get_xkcd_comic_comment(url: str) -> str:
+    """Return author comment."""
     response = requests.get(url)
     response.raise_for_status()
     return response.json()['alt']
 
 
 def get_upload_server(url: str, params: dict) -> str:
+    """Return upload server params."""
     response = requests.get(url, params)
     response.raise_for_status()
     return response.json()
 
 
-def post_comic(url: str, directory: str, image_number: int) -> None:
+def post_comic(url: str, directory: str, image_number: int) -> dict:
+    """
+    Move comic on VK-server and return photo url, server_id and
+    photo_hash.
+    """
     with open(f'{directory}xkcd_comic_{image_number}.png', 'rb') as file:
         files = {
             'photo': file,
@@ -59,16 +65,19 @@ def post_comic(url: str, directory: str, image_number: int) -> None:
 
 
 def delete_comic_image(directory: str, image_number: int) -> None:
-    os.remove(f'{directory}xkcd_comics_{image_number}.png')
+    """Delete comic image from local directory."""
+    os.remove(f'{directory}xkcd_comic_{image_number}.png')
 
 
 def save_image_on_server(url: str, params: dict) -> dict:
+    """Save comic image on server and return saved image params."""
     response = requests.post(url, params)
     response.raise_for_status()
     return response.json()
 
 
 def post_image(url: str, params: dict) -> None:
+    """Post comic in VK-public."""
     response = requests.post(url, params)
     response.raise_for_status()
 
