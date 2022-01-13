@@ -89,18 +89,22 @@ def get_xkcd_comic(url: str) -> dict:
     return response.json()
 
 
-if __name__ == '__main__':
-    load_dotenv()
-    token = os.getenv('VK_TOKEN')
-    vk_api_version = '5.131'
+def get_xkcd_comic_url() -> str:
+    """Return random xkcd comic url."""
     comic_number = random.randint(
         1,
         get_comic_number('https://xkcd.com/info.0.json')
     )
-    xkcd_comic_url = (f'https://xkcd.com/{comic_number}/info.0.json')
+    return f'https://xkcd.com/{comic_number}/info.0.json'
+
+
+if __name__ == '__main__':
+    load_dotenv()
+    token = os.getenv('VK_TOKEN')
+    vk_api_version = '5.131'
+    xkcd_comic_url = get_xkcd_comic_url()
     images_directory = './images/'
     xkcd_comic = get_xkcd_comic(xkcd_comic_url)
-    title = xkcd_comic['title']
     image_number = xkcd_comic['num']
     fetch_xkcd_comic(xkcd_comic_url, images_directory, image_number)
 
@@ -136,7 +140,7 @@ if __name__ == '__main__':
         'owner_id': -210058270,
         'from_group': 1,
         'attachments': f'photo{owner_id}_{media_id}',
-        'message': title,
+        'message': xkcd_comic['title'],
         'access_token': token,
         'v': vk_api_version,
     }
