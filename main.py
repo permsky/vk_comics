@@ -43,8 +43,12 @@ def get_xkcd_comic_comment(url: str) -> str:
     return response.json()['alt']
 
 
-def get_upload_server(url: str, params: dict) -> str:
+def get_upload_server(url: str, token: str, vk_api_version: str) -> str:
     """Return upload server params."""
+    params = {
+        'access_token': token,
+        'v': vk_api_version,
+    }
     response = requests.get(url, params)
     response.raise_for_status()
     return response.json()
@@ -108,15 +112,15 @@ if __name__ == '__main__':
     image_number = xkcd_comic['num']
     fetch_xkcd_comic(xkcd_comic_url, images_directory, image_number)
 
-    get_params = {
-        'access_token': token,
-        'v': vk_api_version,
-    }
     vk_upload_server_url = (
         'https://api.vk.com/method/photos.getWallUploadServer'
     )
 
-    upload_server_params = get_upload_server(vk_upload_server_url, get_params)
+    upload_server_params = get_upload_server(
+        url=vk_upload_server_url,
+        token=token,
+        vk_api_version=vk_api_version
+    )
     upload_url = upload_server_params['response']['upload_url']
     photo_on_server = load_comic(upload_url, images_directory, image_number)
 
