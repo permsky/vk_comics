@@ -24,8 +24,8 @@ def download_image(url: str, image_name: str) -> None:
     """Download image from url."""
     response = requests.get(url)
     response.raise_for_status()
-    with open(image_name, 'wb') as img:
-        img.write(response.content)
+    with open(image_name, 'wb') as img_file:
+        img_file.write(response.content)
 
 
 def fetch_xkcd_comic(url: str, directory: str, image_number: int) -> None:
@@ -82,6 +82,13 @@ def post_comic(url: str, params: dict) -> None:
     response.raise_for_status()
 
 
+def get_xkcd_comic(url: str) -> dict:
+    """Return xkcd comic in json format."""
+    response = requests.get(url)
+    response.raise_for_status()
+    return response.json()
+
+
 if __name__ == '__main__':
     load_dotenv()
     token = os.getenv('VK_TOKEN')
@@ -92,11 +99,9 @@ if __name__ == '__main__':
     )
     xkcd_comic_url = (f'https://xkcd.com/{comic_number}/info.0.json')
     images_directory = './images/'
-    response = requests.get(xkcd_comic_url)
-    response.raise_for_status()
-    xkcd_comic = response.json()
+    xkcd_comic = get_xkcd_comic(xkcd_comic_url)
     title = xkcd_comic['title']
-    image_number = get_comic_number(xkcd_comic_url)
+    image_number = xkcd_comic['num']
     fetch_xkcd_comic(xkcd_comic_url, images_directory, image_number)
 
     get_params = {
