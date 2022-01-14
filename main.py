@@ -95,8 +95,25 @@ def save_image_on_server(
     return response.json()
 
 
-def post_comic(url: str, params: dict) -> None:
+def post_comic(
+        url: str,
+        group_id: int,
+        from_group: int,
+        owner_id: int,
+        media_id: int,
+        post_title: str,
+        token: str,
+        api_version: str,
+        ) -> None:
     """Post comic in VK-public."""
+    params = {
+        'owner_id': group_id,
+        'from_group': from_group,
+        'attachments': f'photo{owner_id}_{media_id}',
+        'message': post_title,
+        'access_token': token,
+        'v': api_version,
+    }
     response = requests.post(url, params)
     response.raise_for_status()
 
@@ -121,18 +138,15 @@ if __name__ == '__main__':
     load_dotenv()
     token = os.getenv('VK_TOKEN')
     vk_api_version = '5.131'
+    vk_api_url = 'https://api.vk.com/method/'
     xkcd_comic_url = get_xkcd_comic_url()
     images_directory = './images/'
     xkcd_comic = get_xkcd_comic(xkcd_comic_url)
     image_number = xkcd_comic['num']
     fetch_xkcd_comic(xkcd_comic_url, images_directory, image_number)
 
-    vk_upload_server_url = (
-        'https://api.vk.com/method/photos.getWallUploadServer'
-    )
-
     upload_server_params = get_upload_server(
-        url=vk_upload_server_url,
+        url=f'{vk_api_url}photos.getWallUploadServer',
         token=token,
         api_version=vk_api_version
     )
@@ -141,26 +155,27 @@ if __name__ == '__main__':
 
     delete_comic_image(images_directory, image_number)
 
-    vk_save_image_url = 'https://api.vk.com/method/photos.saveWallPhoto'
     saved_image = save_image_on_server(
-        url=vk_save_image_url,
+        url=f'{vk_api_url}photos.saveWallPhoto',
         photo=photo_on_server['photo'],
-        server=photo_on_server['server'],
+        server_id=photo_on_server['server'],
         hash=photo_on_server['hash'],
         comic_comment=get_xkcd_comic_comment(xkcd_comic_url),
         token=token,
         api_version=vk_api_version,
     )
 
-    post_url = 'https://api.vk.com/method/wall.post'
     media_id = saved_image['response'][0]['id']
+    print(type(media_id))
     owner_id = saved_image['response'][0]['owner_id']
-    post_params = {
-        'owner_id': -210058270,
-        'from_group': 1,
-        'attachments': f'photo{owner_id}_{media_id}',
-        'message': xkcd_comic['title'],
-        'access_token': token,
-        'v': vk_api_version,
-    }
-    post_comic(post_url, post_params)
+    print(type(owner_id))
+    post_comic(
+        url=f'{vk_api_url}wall.post',
+        group_id=-210058270,
+        from_group=1,
+        owner_id=owner_id,
+        media_id=media_id,
+        post_title=xkcd_comic['title'],
+        token=token,
+        api_version=vk_api_version,
+    )
