@@ -1,9 +1,18 @@
 import os
 import random
+import sys
 from pathlib import Path
 
 import requests
 from dotenv import load_dotenv
+from loguru import logger
+
+
+logger.add(
+    sys.stderr,
+    format='[{time:HH:mm:ss}] <lvl>{message}</lvl>',
+    level='ERROR'
+)
 
 
 def get_image_link(url: str) -> str:
@@ -134,7 +143,9 @@ def get_xkcd_comic_url() -> str:
     return f'https://xkcd.com/{comic_number}/info.0.json'
 
 
-if __name__ == '__main__':
+@logger.catch
+def main() -> None:
+    """Post random xkcd comic in VK-public."""
     load_dotenv()
     token = os.getenv('VK_TOKEN')
     vk_api_version = '5.131'
@@ -145,35 +156,49 @@ if __name__ == '__main__':
     image_number = xkcd_comic['num']
     fetch_xkcd_comic(xkcd_comic_url, images_directory, image_number)
 
-    upload_server_params = get_upload_server(
-        url=f'{vk_api_url}photos.getWallUploadServer',
-        token=token,
-        api_version=vk_api_version
-    )
-    upload_url = upload_server_params['response']['upload_url']
-    photo_on_server = load_comic(upload_url, images_directory, image_number)
+    try:
+        upload_server_params = get_upload_server(
+            url=f'{vk_api_url}photos.getWallUploadServer',
+            token=token,
+            api_version=vk_api_version
+        )
+        upload_url = upload_server_params['response']['upload_url']
+        photo_on_server = load_comic(
+            upload_url,
+            images_directory,
+            image_number
+        )
 
-    delete_comic_image(images_directory, image_number)
+        saved_image = save_image_on_server(
+            url=f'{vk_api_url}photos.saveWallPhoto',
+            photo=photo_on_server['photo'],
+            server_id=photo_on_server['server'],
+            hash=photo_on_server['hash'],
+            comic_comment=get_xkcd_comic_comment(xkcd_comic_url),
+            token=token,
+            api_version=vk_api_version,
+        )
 
-    saved_image = save_image_on_server(
-        url=f'{vk_api_url}photos.saveWallPhoto',
-        photo=photo_on_server['photo'],
-        server_id=photo_on_server['server'],
-        hash=photo_on_server['hash'],
-        comic_comment=get_xkcd_comic_comment(xkcd_comic_url),
-        token=token,
-        api_version=vk_api_version,
-    )
+        media_id = saved_image['response'][0]['id']
+        owner_id = saved_image['response'][0]['owner_id']
+        post_comic(
+            url=f'{vk_api_url}wall.post',
+            group_id=-210058270,
+            from_group=1,
+            owner_id=owner_id,
+            media_id=media_id,
+            post_title=xkcd_comic['title'],
+            token=token,
+            api_version=vk_api_version,
+        )
+    except requests.exceptions.HTTPError:
+        logger.error(
+            'Ошибка обработки HTTP запроса, попробуйте перезапустить скрипт'
+        )
+        sys.exit(1)
+    finally:
+        delete_comic_image(images_directory, image_number)
 
-    media_id = saved_image['response'][0]['id']
-    owner_id = saved_image['response'][0]['owner_id']
-    post_comic(
-        url=f'{vk_api_url}wall.post',
-        group_id=-210058270,
-        from_group=1,
-        owner_id=owner_id,
-        media_id=media_id,
-        post_title=xkcd_comic['title'],
-        token=token,
-        api_version=vk_api_version,
-    )
+
+if __name__ == '__main__':
+    main()
