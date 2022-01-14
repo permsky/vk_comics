@@ -179,14 +179,12 @@ def main() -> None:
             api_version=vk_api_version,
         )
 
-        media_id = saved_image['response'][0]['id']
-        owner_id = saved_image['response'][0]['owner_id']
         post_comic(
             url=f'{vk_api_url}wall.post',
             group_id=-210058270,
             from_group=1,
-            owner_id=owner_id,
-            media_id=media_id,
+            owner_id=saved_image['response'][0]['owner_id'],
+            media_id=saved_image['response'][0]['id'],
             post_title=xkcd_comic['title'],
             token=token,
             api_version=vk_api_version,
