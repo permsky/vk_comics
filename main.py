@@ -166,9 +166,7 @@ if __name__ == '__main__':
     )
 
     media_id = saved_image['response'][0]['id']
-    print(type(media_id))
     owner_id = saved_image['response'][0]['owner_id']
-    print(type(owner_id))
     post_comic(
         url=f'{vk_api_url}wall.post',
         group_id=-210058270,
