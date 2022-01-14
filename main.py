@@ -43,11 +43,11 @@ def get_xkcd_comic_comment(url: str) -> str:
     return response.json()['alt']
 
 
-def get_upload_server(url: str, token: str, vk_api_version: str) -> str:
+def get_upload_server(url: str, token: str, api_version: str) -> str:
     """Return upload server params."""
     params = {
         'access_token': token,
-        'v': vk_api_version,
+        'v': api_version,
     }
     response = requests.get(url, params)
     response.raise_for_status()
@@ -73,8 +73,23 @@ def delete_comic_image(directory: str, image_number: int) -> None:
     os.remove(f'{directory}xkcd_comic_{image_number}.png')
 
 
-def save_image_on_server(url: str, params: dict) -> dict:
+def save_image_on_server(
+        url: str,
+        photo: str,
+        server_id: int,
+        hash: str,
+        comic_comment: str,
+        token: str,
+        api_version: str) -> dict:
     """Save comic image on server and return saved image params."""
+    params = {
+        'photo': photo,
+        'server': server_id,
+        'hash': hash,
+        'caption': comic_comment,
+        'access_token': token,
+        'v': api_version,
+    }
     response = requests.post(url, params)
     response.raise_for_status()
     return response.json()
@@ -119,7 +134,7 @@ if __name__ == '__main__':
     upload_server_params = get_upload_server(
         url=vk_upload_server_url,
         token=token,
-        vk_api_version=vk_api_version
+        api_version=vk_api_version
     )
     upload_url = upload_server_params['response']['upload_url']
     photo_on_server = load_comic(upload_url, images_directory, image_number)
@@ -127,15 +142,15 @@ if __name__ == '__main__':
     delete_comic_image(images_directory, image_number)
 
     vk_save_image_url = 'https://api.vk.com/method/photos.saveWallPhoto'
-    save_params = {
-        'photo': photo_on_server['photo'],
-        'server': photo_on_server['server'],
-        'hash': photo_on_server['hash'],
-        'caption': get_xkcd_comic_comment(xkcd_comic_url),
-        'access_token': token,
-        'v': vk_api_version,
-    }
-    saved_image = save_image_on_server(vk_save_image_url, save_params)
+    saved_image = save_image_on_server(
+        url=vk_save_image_url,
+        photo=photo_on_server['photo'],
+        server=photo_on_server['server'],
+        hash=photo_on_server['hash'],
+        comic_comment=get_xkcd_comic_comment(xkcd_comic_url),
+        token=token,
+        api_version=vk_api_version,
+    )
 
     post_url = 'https://api.vk.com/method/wall.post'
     media_id = saved_image['response'][0]['id']
