@@ -8,13 +8,6 @@ from dotenv import load_dotenv
 from loguru import logger
 
 
-logger.add(
-    sys.stderr,
-    format='[{time:HH:mm:ss}] <lvl>{message}</lvl>',
-    level='ERROR'
-)
-
-
 def get_image_link(url: str) -> str:
     """Return link on comic image."""
     response = requests.get(url)
@@ -146,6 +139,11 @@ def get_xkcd_comic_url() -> str:
 @logger.catch
 def main() -> None:
     """Post random xkcd comic in VK-public."""
+    logger.add(
+        sys.stderr,
+        format='[{time:HH:mm:ss}] <lvl>{message}</lvl>',
+        level='ERROR'
+    )
     load_dotenv()
     token = os.getenv('VK_TOKEN')
     group_id = os.getenv('VK_GROUP_ID')
