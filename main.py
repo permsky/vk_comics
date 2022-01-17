@@ -61,12 +61,12 @@ def load_comic(url: str, directory: str, image_number: int) -> dict:
     Move comic on VK-server and return photo url, server_id and
     photo_hash.
     """
-    with open(f'{directory}xkcd_comic_{image_number}.png', 'rb') as file:
+    with open(f'{directory}xkcd_comic_{image_number}.png', 'rb') as img_file:
         files = {
-            'photo': file,
+            'photo': img_file,
         }
-        response = requests.post(url, files=files)
-        response.raise_for_status()
+    response = requests.post(url, files=files)
+    response.raise_for_status()
     return response.json()
 
 
