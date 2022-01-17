@@ -13,9 +13,9 @@
     pip install -r requirements.txt
     ```
   - [создайте группу ВКонтакте](https://vk.com/groups?w=groups_create)
-  - [создайте приложение ВКонтакте](https://vk.com/apps?act=manage)
+  - [создайте standalone-приложение ВКонтакте](https://vk.com/apps?act=manage)
   - получите секретный ключ для работы с [API сайта vk.com](https://vk.com/dev/), используя процедуру
-  [Implicit Flow](https://vk.com/dev/implicit_flow_user) и ID вашего приложения [ВКонтакте](https://vk.com/). Сохраните ключ в переменной окружения в файле ```.env``` в директории скрипта:
+  [Implicit Flow](https://vk.com/dev/implicit_flow_user) и ID вашего приложения [ВКонтакте](https://vk.com/). Вашему приложению потребуются следующие права: photos, groups, wall и offline. Укажите их через запятую в параметре запроса scope. Сохраните ключ в переменной окружения в файле ```.env``` в директории скрипта:
 
     ```
     VK_TOKEN=533bacf01e1165b57531ad114461ae8736d6506a3
