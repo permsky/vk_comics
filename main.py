@@ -79,7 +79,7 @@ def save_image_on_server(
         url: str,
         photo: str,
         server_id: int,
-        hash: str,
+        image_hash: str,
         comic_comment: str,
         token: str,
         api_version: str) -> dict:
@@ -87,7 +87,7 @@ def save_image_on_server(
     params = {
         'photo': photo,
         'server': server_id,
-        'hash': hash,
+        'hash': image_hash,
         'caption': comic_comment,
         'access_token': token,
         'v': api_version,
@@ -172,7 +172,7 @@ def main() -> None:
             url=f'{vk_api_url}photos.saveWallPhoto',
             photo=photo_on_server['photo'],
             server_id=photo_on_server['server'],
-            hash=photo_on_server['hash'],
+            image_hash=photo_on_server['hash'],
             comic_comment=get_xkcd_comic_comment(xkcd_comic_url),
             token=token,
             api_version=vk_api_version,
