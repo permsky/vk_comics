@@ -148,7 +148,7 @@ def main() -> None:
     """Post random xkcd comic in VK-public."""
     load_dotenv()
     token = os.getenv('VK_TOKEN')
-    group_id = os.getenv('GROUP_ID')
+    group_id = os.getenv('VK_GROUP_ID')
     vk_api_version = '5.131'
     vk_api_url = 'https://api.vk.com/method/'
     xkcd_comic_url = get_xkcd_comic_url()
