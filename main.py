@@ -8,6 +8,9 @@ from dotenv import load_dotenv
 from loguru import logger
 
 
+VK_API_URL = 'https://api.vk.com/method/'
+
+
 def get_image_link(url: str) -> str:
     """Return link on comic image."""
     response = requests.get(url)
@@ -45,13 +48,13 @@ def get_xkcd_comic_comment(url: str) -> str:
     return response.json()['alt']
 
 
-def get_upload_server(url: str, token: str, api_version: str) -> str:
+def get_upload_server(token: str, api_version: str) -> str:
     """Return upload server params."""
     params = {
         'access_token': token,
         'v': api_version,
     }
-    response = requests.get(url, params)
+    response = requests.get(f'{VK_API_URL}photos.getWallUploadServer', params)
     response.raise_for_status()
     return response.json()
 
@@ -76,7 +79,6 @@ def delete_comic_image(directory: str, image_number: int) -> None:
 
 
 def save_image_on_server(
-        url: str,
         photo: str,
         server_id: int,
         image_hash: str,
@@ -92,13 +94,12 @@ def save_image_on_server(
         'access_token': token,
         'v': api_version,
     }
-    response = requests.post(url, params)
+    response = requests.post(f'{VK_API_URL}photos.saveWallPhoto', params)
     response.raise_for_status()
     return response.json()
 
 
 def post_comic(
-        url: str,
         group_id: int,
         from_group: int,
         owner_id: int,
@@ -116,7 +117,7 @@ def post_comic(
         'access_token': token,
         'v': api_version,
     }
-    response = requests.post(url, params)
+    response = requests.post(f'{VK_API_URL}wall.post', params)
     response.raise_for_status()
 
 
@@ -148,7 +149,6 @@ def main() -> None:
     token = os.getenv('VK_TOKEN')
     group_id = os.getenv('VK_GROUP_ID')
     vk_api_version = '5.131'
-    vk_api_url = 'https://api.vk.com/method/'
     xkcd_comic_url = get_xkcd_comic_url()
     images_directory = './images/'
     xkcd_comic = get_xkcd_comic(xkcd_comic_url)
@@ -157,7 +157,6 @@ def main() -> None:
 
     try:
         upload_server_params = get_upload_server(
-            url=f'{vk_api_url}photos.getWallUploadServer',
             token=token,
             api_version=vk_api_version
         )
@@ -169,7 +168,6 @@ def main() -> None:
         )
 
         saved_image = save_image_on_server(
-            url=f'{vk_api_url}photos.saveWallPhoto',
             photo=photo_on_server['photo'],
             server_id=photo_on_server['server'],
             image_hash=photo_on_server['hash'],
@@ -179,7 +177,6 @@ def main() -> None:
         )
 
         post_comic(
-            url=f'{vk_api_url}wall.post',
             group_id=-int(group_id),
             from_group=1,
             owner_id=saved_image['response'][0]['owner_id'],
