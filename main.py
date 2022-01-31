@@ -2,6 +2,7 @@ import os
 import random
 import sys
 from pathlib import Path
+from tkinter import image_names
 
 import requests
 from dotenv import load_dotenv
@@ -23,22 +24,21 @@ def get_random_number(number: str) -> int:
     return random.randint(1, int(number))
 
 
-def download_image(url: str, image_name: str) -> None:
+def download_image(url: str, image_path: str) -> None:
     """Download image from url."""
     response = requests.get(url)
     response.raise_for_status()
-    with open(image_name, 'wb') as img_file:
+    with open(image_path, 'wb') as img_file:
         img_file.write(response.content)
 
 
 def fetch_xkcd_comic(
-        comic_number: str,
+        image_path: str,
         image_link: str,
         directory: str) -> None:
     """Fetch xkcd comic image into determined directory."""
     Path(directory).mkdir(exist_ok=True)
-    image_name = f'{directory}xkcd_comic_{comic_number}.png'
-    download_image(image_link, image_name)
+    download_image(image_link, image_path)
 
 
 def get_upload_server(token: str, api_version: str) -> str:
@@ -52,23 +52,18 @@ def get_upload_server(token: str, api_version: str) -> str:
     return response.json()
 
 
-def load_comic(url: str, directory: str, comic_number: int) -> dict:
+def load_comic(url: str, image_path: str) -> dict:
     """
     Move comic on VK-server and return photo url, server_id and
     photo_hash.
     """
-    with open(f'{directory}xkcd_comic_{comic_number}.png', 'rb') as img_file:
+    with open(image_path, 'rb') as img_file:
         files = {
             'photo': img_file,
         }
         response = requests.post(url, files=files)
     response.raise_for_status()
     return response.json()
-
-
-def delete_comic_image(directory: str, comic_number: int) -> None:
-    """Delete comic image from local directory."""
-    os.remove(f'{directory}xkcd_comic_{comic_number}.png')
 
 
 def save_image_on_server(
@@ -141,8 +136,9 @@ def main() -> None:
     comic_number = get_random_number(recent_comic_number)
     images_directory = './images/'
     xkcd_comic = get_xkcd_comic(comic_number=comic_number)
+    image_path = f'{images_directory}xkcd_comic_{comic_number}.png'
     fetch_xkcd_comic(
-        comic_number=xkcd_comic['num'],
+        image_path=image_path,
         image_link=xkcd_comic['img'],
         directory=images_directory
     )
@@ -155,8 +151,7 @@ def main() -> None:
         upload_url = upload_server_params['response']['upload_url']
         photo_on_server = load_comic(
             url=upload_url,
-            directory=images_directory,
-            comic_number=comic_number
+            image_path=image_path
         )
 
         saved_image = save_image_on_server(
@@ -183,7 +178,7 @@ def main() -> None:
         )
         sys.exit(1)
     finally:
-        delete_comic_image(images_directory, comic_number)
+        os.remove(image_path)
 
 
 if __name__ == '__main__':
