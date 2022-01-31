@@ -11,21 +11,16 @@ from loguru import logger
 VK_API_URL = 'https://api.vk.com/method/'
 
 
-def download_image(url: str, image_path: str) -> None:
-    """Download image from url."""
-    response = requests.get(url)
-    response.raise_for_status()
-    with open(image_path, 'wb') as img_file:
-        img_file.write(response.content)
-
-
 def fetch_xkcd_comic(
         image_path: str,
         image_link: str,
         directory: str) -> None:
     """Fetch xkcd comic image into determined directory."""
     Path(directory).mkdir(exist_ok=True)
-    download_image(image_link, image_path)
+    response = requests.get(image_link)
+    response.raise_for_status()
+    with open(image_path, 'wb') as img_file:
+        img_file.write(response.content)
 
 
 def get_upload_server(token: str, api_version: str) -> str:
