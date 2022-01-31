@@ -33,17 +33,19 @@ def download_image(url: str, image_name: str) -> None:
         img_file.write(response.content)
 
 
-def fetch_xkcd_comic(url: str, directory: str, image_number: int) -> None:
+def fetch_xkcd_comic(comic_number: int, directory: str) -> None:
     """Fetch xkcd comic image into determined directory."""
-    image_link = get_image_link(url)
+    image_link = get_image_link(
+        f'https://xkcd.com/{comic_number}/info.0.json'
+    )
     Path(directory).mkdir(exist_ok=True)
-    image_name = f'{directory}xkcd_comic_{image_number}.png'
+    image_name = f'{directory}xkcd_comic_{comic_number}.png'
     download_image(image_link, image_name)
 
 
-def get_xkcd_comic_comment(url: str) -> str:
+def get_xkcd_comic_comment(comic_number: str) -> str:
     """Return author comment."""
-    response = requests.get(url)
+    response = requests.get(f'https://xkcd.com/{comic_number}/info.0.json')
     response.raise_for_status()
     return response.json()['alt']
 
@@ -59,23 +61,23 @@ def get_upload_server(token: str, api_version: str) -> str:
     return response.json()
 
 
-def load_comic(url: str, directory: str, image_number: int) -> dict:
+def load_comic(url: str, directory: str, comic_number: int) -> dict:
     """
     Move comic on VK-server and return photo url, server_id and
     photo_hash.
     """
-    with open(f'{directory}xkcd_comic_{image_number}.png', 'rb') as img_file:
+    with open(f'{directory}xkcd_comic_{comic_number}.png', 'rb') as img_file:
         files = {
             'photo': img_file,
         }
-    response = requests.post(url, files=files)
-    response.raise_for_status()
-    return response.json()
+        response = requests.post(url, files=files)
+        response.raise_for_status()
+        return response.json()
 
 
-def delete_comic_image(directory: str, image_number: int) -> None:
+def delete_comic_image(directory: str, comic_number: int) -> None:
     """Delete comic image from local directory."""
-    os.remove(f'{directory}xkcd_comic_{image_number}.png')
+    os.remove(f'{directory}xkcd_comic_{comic_number}.png')
 
 
 def save_image_on_server(
@@ -121,20 +123,11 @@ def post_comic(
     response.raise_for_status()
 
 
-def get_xkcd_comic(url: str) -> dict:
+def get_xkcd_comic(comic_number: str) -> dict:
     """Return xkcd comic in json format."""
-    response = requests.get(url)
+    response = requests.get(f'https://xkcd.com/{comic_number}/info.0.json')
     response.raise_for_status()
     return response.json()
-
-
-def get_xkcd_comic_url() -> str:
-    """Return random xkcd comic url."""
-    comic_number = random.randint(
-        1,
-        get_comic_number('https://xkcd.com/info.0.json')
-    )
-    return f'https://xkcd.com/{comic_number}/info.0.json'
 
 
 @logger.catch
@@ -149,11 +142,13 @@ def main() -> None:
     token = os.getenv('VK_TOKEN')
     group_id = os.getenv('VK_GROUP_ID')
     vk_api_version = '5.131'
-    xkcd_comic_url = get_xkcd_comic_url()
+    comic_number = random.randint(
+        1,
+        get_comic_number('https://xkcd.com/info.0.json')
+    )
     images_directory = './images/'
-    xkcd_comic = get_xkcd_comic(xkcd_comic_url)
-    image_number = xkcd_comic['num']
-    fetch_xkcd_comic(xkcd_comic_url, images_directory, image_number)
+    xkcd_comic = get_xkcd_comic(comic_number)
+    fetch_xkcd_comic(comic_number, images_directory)
 
     try:
         upload_server_params = get_upload_server(
@@ -164,14 +159,14 @@ def main() -> None:
         photo_on_server = load_comic(
             upload_url,
             images_directory,
-            image_number
+            comic_number
         )
 
         saved_image = save_image_on_server(
             photo=photo_on_server['photo'],
             server_id=photo_on_server['server'],
             image_hash=photo_on_server['hash'],
-            comic_comment=get_xkcd_comic_comment(xkcd_comic_url),
+            comic_comment=get_xkcd_comic_comment(comic_number),
             token=token,
             api_version=vk_api_version,
         )
@@ -191,7 +186,7 @@ def main() -> None:
         )
         sys.exit(1)
     finally:
-        delete_comic_image(images_directory, image_number)
+        delete_comic_image(images_directory, comic_number)
 
 
 if __name__ == '__main__':
