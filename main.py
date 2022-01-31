@@ -11,11 +11,6 @@ from loguru import logger
 VK_API_URL = 'https://api.vk.com/method/'
 
 
-def get_random_number(number: str) -> int:
-    """Return comic image number."""
-    return random.randint(1, int(number))
-
-
 def download_image(url: str, image_path: str) -> None:
     """Download image from url."""
     response = requests.get(url)
@@ -124,8 +119,7 @@ def main() -> None:
     token = os.getenv('VK_TOKEN')
     group_id = os.getenv('VK_GROUP_ID')
     vk_api_version = '5.131'
-    recent_comic_number = get_xkcd_comic()['num']
-    comic_number = get_random_number(recent_comic_number)
+    comic_number = random.randint(1, int(get_xkcd_comic()['num']))
     images_directory = './images/'
     xkcd_comic = get_xkcd_comic(comic_number=comic_number)
     image_path = f'{images_directory}xkcd_comic_{comic_number}.png'
