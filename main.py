@@ -11,13 +11,6 @@ from loguru import logger
 VK_API_URL = 'https://api.vk.com/method/'
 
 
-def get_image_link(url: str) -> str:
-    """Return link on comic image."""
-    response = requests.get(url)
-    response.raise_for_status()
-    return response.json()['img']
-
-
 def get_random_number(number: str) -> int:
     """Return comic image number."""
     return random.randint(1, int(number))
