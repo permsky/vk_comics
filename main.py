@@ -62,8 +62,8 @@ def load_comic(url: str, directory: str, comic_number: int) -> dict:
             'photo': img_file,
         }
         response = requests.post(url, files=files)
-        response.raise_for_status()
-        return response.json()
+    response.raise_for_status()
+    return response.json()
 
 
 def delete_comic_image(directory: str, comic_number: int) -> None:
