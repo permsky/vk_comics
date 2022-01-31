@@ -2,7 +2,6 @@ import os
 import random
 import sys
 from pathlib import Path
-from tkinter import image_names
 
 import requests
 from dotenv import load_dotenv
