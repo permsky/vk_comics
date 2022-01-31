@@ -18,14 +18,9 @@ def get_image_link(url: str) -> str:
     return response.json()['img']
 
 
-def get_comic_number() -> int:
+def get_random_number(number: str) -> int:
     """Return comic image number."""
-    response = requests.get('https://xkcd.com/info.0.json')
-    response.raise_for_status()
-    return random.randint(
-        1,
-        int(response.json()['num'])
-    )
+    return random.randint(1, int(number))
 
 
 def download_image(url: str, image_name: str) -> None:
@@ -36,11 +31,11 @@ def download_image(url: str, image_name: str) -> None:
         img_file.write(response.content)
 
 
-def fetch_xkcd_comic(comic_number: int, directory: str) -> None:
+def fetch_xkcd_comic(
+        comic_number: str,
+        image_link: str,
+        directory: str) -> None:
     """Fetch xkcd comic image into determined directory."""
-    image_link = get_image_link(
-        f'https://xkcd.com/{comic_number}/info.0.json'
-    )
     Path(directory).mkdir(exist_ok=True)
     image_name = f'{directory}xkcd_comic_{comic_number}.png'
     download_image(image_link, image_name)
@@ -119,8 +114,12 @@ def post_comic(
     response.raise_for_status()
 
 
-def get_xkcd_comic(comic_number: str) -> dict:
+def get_xkcd_comic(comic_number=None) -> dict:
     """Return xkcd comic in json format."""
+    if comic_number is None:
+        response = requests.get(f'https://xkcd.com/info.0.json')
+        response.raise_for_status()
+        return response.json()
     response = requests.get(f'https://xkcd.com/{comic_number}/info.0.json')
     response.raise_for_status()
     return response.json()
@@ -138,10 +137,15 @@ def main() -> None:
     token = os.getenv('VK_TOKEN')
     group_id = os.getenv('VK_GROUP_ID')
     vk_api_version = '5.131'
-    comic_number = get_comic_number()
+    recent_comic_number = get_xkcd_comic()['num']
+    comic_number = get_random_number(recent_comic_number)
     images_directory = './images/'
-    xkcd_comic = get_xkcd_comic(comic_number)
-    fetch_xkcd_comic(comic_number, images_directory)
+    xkcd_comic = get_xkcd_comic(comic_number=comic_number)
+    fetch_xkcd_comic(
+        comic_number=xkcd_comic['num'],
+        image_link=xkcd_comic['img'],
+        directory=images_directory
+    )
 
     try:
         upload_server_params = get_upload_server(
@@ -150,9 +154,9 @@ def main() -> None:
         )
         upload_url = upload_server_params['response']['upload_url']
         photo_on_server = load_comic(
-            upload_url,
-            images_directory,
-            comic_number
+            url=upload_url,
+            directory=images_directory,
+            comic_number=comic_number
         )
 
         saved_image = save_image_on_server(
