@@ -94,7 +94,7 @@ def post_comic(
 def get_xkcd_comic(comic_number=None) -> dict:
     """Return xkcd comic in json format."""
     if comic_number is None:
-        response = requests.get(f'https://xkcd.com/info.0.json')
+        response = requests.get('https://xkcd.com/info.0.json')
         response.raise_for_status()
         return response.json()
     response = requests.get(f'https://xkcd.com/{comic_number}/info.0.json')
@@ -115,9 +115,9 @@ def main() -> None:
     group_id = os.getenv('VK_GROUP_ID')
     vk_api_version = '5.131'
     comic_number = random.randint(1, int(get_xkcd_comic()['num']))
-    images_directory = './images/'
+    images_directory = 'images'
     xkcd_comic = get_xkcd_comic(comic_number=comic_number)
-    image_path = f'{images_directory}xkcd_comic_{comic_number}.png'
+    image_path = Path(images_directory, f'xkcd_comic_{comic_number}.png')
     fetch_xkcd_comic(
         image_path=image_path,
         image_link=xkcd_comic['img'],
