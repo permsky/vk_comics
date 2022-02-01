@@ -11,6 +11,10 @@ from loguru import logger
 VK_API_URL = 'https://api.vk.com/method/'
 
 
+class VKAPIError(requests.HTTPError):
+    pass
+
+
 def fetch_xkcd_comic(
         image_path: str,
         image_link: str,
@@ -23,6 +27,20 @@ def fetch_xkcd_comic(
         img_file.write(response.content)
 
 
+def check_vk_api_response(response: dict) -> None:
+    """Check VK API response for errors."""
+    if 'error' in response:
+        if 'error_code' in response['error']:
+            raise VKAPIError(
+                f'Error code: {response["error"]["error_code"]}'
+                f'\nError message: {response["error"]["error_msg"]}'
+            )
+    if 'error' in response:
+        raise VKAPIError(
+            f'\nError message: {response["error"]["error_msg"]}'
+        )
+
+
 def get_upload_server(token: str, api_version: str) -> str:
     """Return upload server params."""
     params = {
@@ -31,7 +49,9 @@ def get_upload_server(token: str, api_version: str) -> str:
     }
     response = requests.get(f'{VK_API_URL}photos.getWallUploadServer', params)
     response.raise_for_status()
-    return response.json()
+    response_json = response.json()
+    check_vk_api_response(response_json)
+    return response_json
 
 
 def load_comic(url: str, image_path: str) -> dict:
@@ -45,7 +65,9 @@ def load_comic(url: str, image_path: str) -> dict:
         }
         response = requests.post(url, files=files)
     response.raise_for_status()
-    return response.json()
+    response_json = response.json()
+    check_vk_api_response(response_json)
+    return response_json
 
 
 def save_image_on_server(
@@ -66,7 +88,9 @@ def save_image_on_server(
     }
     response = requests.post(f'{VK_API_URL}photos.saveWallPhoto', params)
     response.raise_for_status()
-    return response.json()
+    response_json = response.json()
+    check_vk_api_response(response_json)
+    return response_json
 
 
 def post_comic(
@@ -89,6 +113,7 @@ def post_comic(
     }
     response = requests.post(f'{VK_API_URL}wall.post', params)
     response.raise_for_status()
+    check_vk_api_response(response.json())
 
 
 def get_xkcd_comic(comic_number=None) -> dict:
@@ -153,6 +178,9 @@ def main() -> None:
             token=token,
             api_version=vk_api_version,
         )
+    except VKAPIError as err:
+        logger.error(err)
+        sys.exit(1)
     except requests.exceptions.HTTPError:
         logger.error(
             'Ошибка обработки HTTP запроса, попробуйте перезапустить скрипт'
