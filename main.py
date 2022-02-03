@@ -48,9 +48,9 @@ def get_vk_upload_server(token: str, api_version: str) -> str:
     }
     response = requests.get(f'{VK_API_URL}photos.getWallUploadServer', params)
     response.raise_for_status()
-    response_json = response.json()
-    check_vk_api_response(response_json)
-    return response_json
+    response_params = response.json()
+    check_vk_api_response(response_params)
+    return response_params
 
 
 def load_comic_vk(url: str, image_path: str) -> dict:
@@ -64,9 +64,9 @@ def load_comic_vk(url: str, image_path: str) -> dict:
         }
         response = requests.post(url, files=files)
     response.raise_for_status()
-    response_json = response.json()
-    check_vk_api_response(response_json)
-    return response_json
+    response_params = response.json()
+    check_vk_api_response(response_params)
+    return response_params
 
 
 def save_image_on_vk_server(
@@ -87,9 +87,9 @@ def save_image_on_vk_server(
     }
     response = requests.post(f'{VK_API_URL}photos.saveWallPhoto', params)
     response.raise_for_status()
-    response_json = response.json()
-    check_vk_api_response(response_json)
-    return response_json
+    response_params = response.json()
+    check_vk_api_response(response_params)
+    return response_params
 
 
 def post_comic_vk(
