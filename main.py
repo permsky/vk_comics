@@ -40,7 +40,7 @@ def check_vk_api_response(response: dict) -> None:
         )
 
 
-def get_upload_server(token: str, api_version: str) -> str:
+def get_vk_upload_server(token: str, api_version: str) -> str:
     """Return upload server params."""
     params = {
         'access_token': token,
@@ -53,7 +53,7 @@ def get_upload_server(token: str, api_version: str) -> str:
     return response_json
 
 
-def load_comic(url: str, image_path: str) -> dict:
+def load_comic_vk(url: str, image_path: str) -> dict:
     """
     Move comic on VK-server and return photo url, server_id and
     photo_hash.
@@ -69,14 +69,14 @@ def load_comic(url: str, image_path: str) -> dict:
     return response_json
 
 
-def save_image_on_server(
+def save_image_on_vk_server(
         photo: str,
         server_id: int,
         image_hash: str,
         comic_comment: str,
         token: str,
         api_version: str) -> dict:
-    """Save comic image on server and return saved image params."""
+    """Save comic image on VK-server and return saved image params."""
     params = {
         'photo': photo,
         'server': server_id,
@@ -92,7 +92,7 @@ def save_image_on_server(
     return response_json
 
 
-def post_comic(
+def post_comic_vk(
         group_id: int,
         from_group: int,
         owner_id: int,
@@ -149,17 +149,17 @@ def main() -> None:
     )
 
     try:
-        upload_server_params = get_upload_server(
+        upload_server_params = get_vk_upload_server(
             token=token,
             api_version=vk_api_version
         )
         upload_url = upload_server_params['response']['upload_url']
-        photo_on_server = load_comic(
+        photo_on_server = load_comic_vk(
             url=upload_url,
             image_path=image_path
         )
 
-        saved_image = save_image_on_server(
+        saved_image = save_image_on_vk_server(
             photo=photo_on_server['photo'],
             server_id=photo_on_server['server'],
             image_hash=photo_on_server['hash'],
@@ -168,7 +168,7 @@ def main() -> None:
             api_version=vk_api_version,
         )
 
-        post_comic(
+        post_comic_vk(
             group_id=-int(group_id),
             from_group=1,
             owner_id=saved_image['response'][0]['owner_id'],
