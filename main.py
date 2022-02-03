@@ -35,7 +35,6 @@ def check_vk_api_response(response: dict) -> None:
                 f'Error code: {response["error"]["error_code"]}'
                 f'\nError message: {response["error"]["error_msg"]}'
             )
-    if 'error' in response:
         raise VKAPIError(
             f'\nError message: {response["error"]["error_msg"]}'
         )
