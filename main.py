@@ -117,11 +117,10 @@ def post_comic_vk(
 
 def get_xkcd_comic(comic_number=None) -> dict:
     """Return xkcd comic in json format."""
+    url = 'https://xkcd.com/info.0.json'
     if comic_number:
-        response = requests.get(f'https://xkcd.com/{comic_number}/info.0.json')
-        response.raise_for_status()
-        return response.json()
-    response = requests.get('https://xkcd.com/info.0.json')
+        url = f'https://xkcd.com/{comic_number}/info.0.json'
+    response = requests.get(url)
     response.raise_for_status()
     return response.json()
 
